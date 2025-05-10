@@ -12,7 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5dcb3b2bd66f195478f3d3f215896a74, type: 3}
   m_Name: Round2
   m_EditorClassIdentifier: 
-  words: []
-  timePerWord: 0
+  words:
+  - ben
+  - bilmiyordum
+  - hakim
+  timePerWord: 12
   isFinalRound: 0
   overrideLastWord: "yapt\u0131m"
