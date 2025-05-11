@@ -18,8 +18,8 @@ public class FinalSceneController : MonoBehaviour
     
     [Header("Scene Setup")]
     [SerializeField] private List<CharacterVariant> characterVariants = new List<CharacterVariant>();
-    [SerializeField] private float initialDelay = 2f;
-    [SerializeField] private float initialSwapDelay = 5f;
+    [SerializeField] private float initialDelay = 0.5f; // Short delay before everything starts
+    [SerializeField] private float swapStartDelay = 2f; // Delay before swapping starts (zoom starts immediately)
     [SerializeField] private float minSwapDelay = 0.1f;
     [SerializeField] private float swapDelayDecrement = 0.5f;
     [SerializeField] private float fastSwapDuration = 1.5f; // Total duration for fast swaps
@@ -60,7 +60,7 @@ public class FinalSceneController : MonoBehaviour
     void Start()
     {
         // Initialize
-        currentSwapDelay = initialSwapDelay;
+        currentSwapDelay = swapStartDelay;
         
         // Hide variant text initially
         if (variantText != null)
@@ -87,7 +87,7 @@ public class FinalSceneController : MonoBehaviour
         
         Debug.Log("Starting final sequence");
         
-        // Initial delay
+        // Very short initial delay
         yield return new WaitForSeconds(initialDelay);
         
         // Play background music
@@ -148,15 +148,9 @@ public class FinalSceneController : MonoBehaviour
             }
         }
         
-        // Wait before starting the swapping and zooming
-        yield return new WaitForSeconds(initialSwapDelay);
+        Debug.Log("Starting zoom animation immediately");
         
-        Debug.Log("Starting zoom and swap sequences");
-        
-        // Start the swap sequence
-        StartCoroutine(SwapSequence());
-        
-        // Start the zoom animations with different durations
+        // Start the zoom animations with different durations - IMMEDIATELY
         if (zoomInToFace)
         {
             // Zoom in to face (character)
@@ -190,12 +184,26 @@ public class FinalSceneController : MonoBehaviour
             }
         }
         
+        // Wait before starting swapping (separate from zoom start)
+        yield return new WaitForSeconds(swapStartDelay);
+        
+        Debug.Log("Starting character swap sequence");
+        
+        // Start the swap sequence
+        StartCoroutine(SwapSequence());
+        
         // Calculate total sequence time
         float longerZoomDuration = Mathf.Max(characterZoomDuration, backgroundZoomDuration);
-        float totalSequenceTime = initialDelay + initialSwapDelay + longerZoomDuration + waitAfterZoom;
         
-        // Wait for the total sequence time
-        yield return new WaitForSeconds(longerZoomDuration + waitAfterZoom);
+        // Wait for the zoom to complete
+        float remainingZoomTime = longerZoomDuration - swapStartDelay;
+        if (remainingZoomTime > 0)
+        {
+            yield return new WaitForSeconds(remainingZoomTime);
+        }
+        
+        // Wait additional time after zoom
+        yield return new WaitForSeconds(waitAfterZoom);
         
         Debug.Log("Starting final fade sequence");
         

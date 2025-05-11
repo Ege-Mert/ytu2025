@@ -7,6 +7,7 @@ public class UIManager : MonoBehaviour
 {
     [Header("UI References")]
     [SerializeField] private TextMeshProUGUI ammoText;
+    [SerializeField] private TextMeshProUGUI killCountText;
     [SerializeField] private Image fadeImage;
     [SerializeField] private RectTransform gunContainer; // Parent container for gun image
     
@@ -18,6 +19,9 @@ public class UIManager : MonoBehaviour
     [Header("Fade Settings")]
     [SerializeField] private bool startWithBlackScreen = false;
     [SerializeField] private float initialFadeInDuration = 1.5f;
+    
+    [Header("Kill Count Format")]
+    [SerializeField] private string killCountFormat = "Rabbits: {0}/{1}";
     
     private Vector2 initialGunPosition;
     
@@ -45,10 +49,11 @@ public class UIManager : MonoBehaviour
             }
         }
         
-        // If in transition scene, hide ammo and gun
+        // If in transition scene, hide ammo, kill count, and gun
         if (IsTransitionScene())
         {
             if (ammoText != null) ammoText.gameObject.SetActive(false);
+            if (killCountText != null) killCountText.gameObject.SetActive(false);
             if (gunContainer != null) gunContainer.gameObject.SetActive(false);
         }
     }
@@ -64,6 +69,18 @@ public class UIManager : MonoBehaviour
         if (ammoText != null)
         {
             ammoText.text = $"{current}/{max}";
+        }
+    }
+    
+    public void UpdateKillCount(int kills, int total)
+    {
+        if (killCountText != null)
+        {
+            killCountText.text = string.Format(killCountFormat, kills, total);
+            
+            // Optional: Add animation to make the count change more noticeable
+            killCountText.transform.DOPunchScale(Vector3.one * 0.2f, 0.3f, 2, 0.5f)
+                .SetUpdate(true); // Make it work even if time is slowed
         }
     }
     

@@ -643,6 +643,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ammoText: {fileID: 0}
+  killCountText: {fileID: 0}
   fadeImage: {fileID: 1285236204}
   gunContainer: {fileID: 0}
   gunRecoilAmount: 30
@@ -650,6 +651,7 @@ MonoBehaviour:
   gunReturnDuration: 0.2
   startWithBlackScreen: 0
   initialFadeInDuration: 1.5
+  killCountFormat: 'Rabbits: {0}/{1}'
 --- !u!1 &663116629
 GameObject:
   m_ObjectHideFlags: 0
@@ -1073,8 +1075,8 @@ MonoBehaviour:
   rotationAngle: 140
   rotationTime: 18
   cameraEase: 7
-  policeSound: {fileID: 0}
-  ambienceSound: {fileID: 0}
+  policeSound: {fileID: 8300000, guid: 679b31e60a3bb544696cb8e1fac23733, type: 3}
+  ambienceSound: {fileID: 8300000, guid: f1f6b8af5c73bf645a2934e6d63ee1b6, type: 3}
   volumeFadeTime: 2
   sceneTime: 8
   fadeOutTime: 2

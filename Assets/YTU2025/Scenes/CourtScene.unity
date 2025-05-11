@@ -243,6 +243,12 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 879053962}
     m_Modifications:
+    - target: {fileID: 2277183028859540862, guid: 79e35d14f25f63e47a31590873e266c8,
+        type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: ce60d247cb07d464087491546f226996,
+        type: 3}
     - target: {fileID: 2658109715988585396, guid: 79e35d14f25f63e47a31590873e266c8,
         type: 3}
       propertyPath: m_Pivot.x
@@ -347,6 +353,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: TutorialUI
+      objectReference: {fileID: 0}
+    - target: {fileID: 3675438896002373111, guid: 79e35d14f25f63e47a31590873e266c8,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -556,6 +567,73 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &289366795
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 289366796}
+  - component: {fileID: 289366797}
+  m_Layer: 0
+  m_Name: Audiomanager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &289366796
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 289366795}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1407171338}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &289366797
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 289366795}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a226501362625c488d1c44cfeaf8541, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sounds:
+  - name: 
+    clip: {fileID: 8300000, guid: a89882fb865f2e34593c66e1a2cda4f5, type: 3}
+    volume: 0
+    pitch: 0
+    loop: 0
+    spatialBlend: 0
+    source: {fileID: 0}
+  - name: gasp
+    clip: {fileID: 8300000, guid: 3d33a36910c2f694298060e135cc6b81, type: 3}
+    volume: 0
+    pitch: 0
+    loop: 0
+    spatialBlend: 0
+    source: {fileID: 0}
+  - name: gavel
+    clip: {fileID: 8300000, guid: 22ddb91b572102f439e31c51b0a7a98f, type: 3}
+    volume: 0
+    pitch: 0
+    loop: 0
+    spatialBlend: 0
+    source: {fileID: 0}
+  makeTimeScaleIndependent: 1
 --- !u!1 &406647477
 GameObject:
   m_ObjectHideFlags: 0
@@ -1190,7 +1268,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -6.1557, y: -0.00021744}
-  m_SizeDelta: {x: 560.1315, y: 290.66}
+  m_SizeDelta: {x: 510.8314, y: 255.4458}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &902180544
 CanvasRenderer:
@@ -1420,7 +1498,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0.0023193, y: 0.00091553}
-  m_SizeDelta: {x: 804.76, y: 323.74}
+  m_SizeDelta: {x: 766.0244, y: 295.5685}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &996471853
 CanvasRenderer:
@@ -1611,9 +1689,9 @@ MonoBehaviour:
   lawyerChatText: {fileID: 996471854}
   judgeChatBubble: {fileID: 1709610027}
   judgeChatText: {fileID: 902180545}
-  lawyerIntroText: Repeat after me.
-  judgeRegularResponse: I dismiss your defense.
-  judgeFinalSentence: You are sentenced to life imprisonment.
+  lawyerIntroText: Benimm dediklerimi tekrarla
+  judgeRegularResponse: "Savunman\u0131z\u0131 reddediyorum."
+  judgeFinalSentence: "\xD6m\xFCr boyu hapis cezas\u0131na \xE7arpt\u0131r\u0131ld\u0131n\u0131z."
   lawyerCloseupPosition: {x: -6.5, y: 0.14, z: -3.18}
   courtRoomPosition: {x: 0, y: 1, z: -10}
   cameraPullbackDuration: 1
@@ -1641,6 +1719,9 @@ MonoBehaviour:
   transitionEndPosition: {x: 1561, y: 0}
   rounds:
   - {fileID: 11400000, guid: 57da87ea6e312204fbb9b55f9fe323ed, type: 2}
+  - {fileID: 11400000, guid: d717a80323fa525429e6b3a8b08742c1, type: 2}
+  - {fileID: 11400000, guid: c5dae464c2aa6f44aa398dec412932a4, type: 2}
+  - {fileID: 11400000, guid: bb572520da3dc40498196a1eda379f7c, type: 2}
   - {fileID: 11400000, guid: c516b5c2577bb3747bc3b46ab5087d8b, type: 2}
   typingSystem: {fileID: 37534770}
   gavelSoundName: gavel
@@ -2207,6 +2288,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1910221874}
+  - {fileID: 289366796}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1508083959

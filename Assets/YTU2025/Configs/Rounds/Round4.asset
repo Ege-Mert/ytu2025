@@ -13,7 +13,11 @@ MonoBehaviour:
   m_Name: Round4
   m_EditorClassIdentifier: 
   words:
-  - test
-  timePerWord: 8
+  - "ger\xE7ekten"
+  - hakim
+  - bey
+  - bilerek
+  - "yapmad\u0131m"
+  timePerWord: 9
   isFinalRound: 0
   overrideLastWord: "yapt\u0131m"

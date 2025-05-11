@@ -11,6 +11,9 @@ public class RabbitController : MonoBehaviour
     
     [Header("References")]
     [SerializeField] private GameObject rabbitModel; // Separate reference for the visual model
+    [SerializeField] private SpriteRenderer rabbitSprite; // Reference to the sprite renderer
+    [SerializeField] private Sprite hitSprite; // Sprite to show when hit
+    [SerializeField] private float hitSpriteDisplayTime = 1f; // How long to show the hit sprite
     
     [Header("Special Rabbit Settings")]
     [SerializeField] private bool isSpecialRabbit = false;
@@ -23,6 +26,7 @@ public class RabbitController : MonoBehaviour
     
     private Transform currentTarget;
     private bool isDead = false;
+    private Sprite originalSprite; // Store the original sprite
     private GameManager gameManager;
     private UIManager uiManager;
     
@@ -57,6 +61,18 @@ public class RabbitController : MonoBehaviour
                 rabbitModel = gameObject;
                 Debug.LogWarning("No rabbit model assigned - using controller GameObject");
             }
+        }
+        
+        // If rabbitSprite isn't set, try to find one
+        if (rabbitSprite == null)
+        {
+            rabbitSprite = GetComponentInChildren<SpriteRenderer>();
+        }
+        
+        // Store the original sprite if we have a sprite renderer
+        if (rabbitSprite != null && rabbitSprite.sprite != null)
+        {
+            originalSprite = rabbitSprite.sprite;
         }
         
         // Make sure the human model is disabled at start
@@ -95,22 +111,54 @@ public class RabbitController : MonoBehaviour
         
         isDead = true;
         
+        // Show hit sprite if available
+        bool canShowHitSprite = ShowHitSprite();
+        
+        // Notify game manager to count the kill
+        if (gameManager != null)
+        {
+            gameManager.RegisterKill();
+        }
+        
         if (isSpecialRabbit)
         {
-            // This is the special rabbit with the human inside
-            RevealHuman();
+            // If we're showing a hit sprite first, delay the reveal
+            if (canShowHitSprite)
+            {
+                DOVirtual.DelayedCall(hitSpriteDisplayTime, RevealHuman);
+            }
+            else
+            {
+                // Otherwise reveal immediately
+                RevealHuman();
+            }
         }
         else
         {
-            // Normal rabbit death - destroy the object
-            Destroy(gameObject);
-            
-            // Notify game manager of kill (if you still want to track kills)
-            if (gameManager != null)
+            // For regular rabbits, destroy after showing hit sprite
+            if (canShowHitSprite)
             {
-                gameManager.RegisterKill();
+                DOVirtual.DelayedCall(hitSpriteDisplayTime, () => {
+                    Destroy(gameObject);
+                });
+            }
+            else
+            {
+                // No hit sprite, destroy immediately
+                Destroy(gameObject);
             }
         }
+    }
+    
+    private bool ShowHitSprite()
+    {
+        // If we have both a sprite renderer and a hit sprite, show it
+        if (rabbitSprite != null && hitSprite != null)
+        {
+            rabbitSprite.sprite = hitSprite;
+            return true;
+        }
+        return false;
     }
     
     private void RevealHuman()

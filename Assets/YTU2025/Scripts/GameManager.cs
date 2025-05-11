@@ -10,11 +10,14 @@ public class GameManager : MonoBehaviour
     [Header("Sound Settings")]
     [SerializeField] private bool useSoundManager = true;
     
-    // Track kills (optional, if you still want to track overall progression)
+    // Track kills
     private int killCount = 0;
     
     // Make the instance accessible to other scripts
     public static GameManager Instance { get; private set; }
+    
+    // Reference to UI Manager
+    private UIManager uiManager;
     
     void Awake()
     {
@@ -29,11 +32,38 @@ public class GameManager : MonoBehaviour
         }
     }
     
-    // Method called by the RabbitController when a regular rabbit is killed
+    void Start()
+    {
+        // Find UI Manager
+        uiManager = FindObjectOfType<UIManager>();
+        
+        // Initialize kill count display
+        UpdateKillCountDisplay();
+    }
+    
+    // Method called by the RabbitController when any rabbit is killed
     public void RegisterKill()
     {
         killCount++;
         Debug.Log($"Kill registered: {killCount}/{totalRabbits}");
+        
+        // Update UI
+        UpdateKillCountDisplay();
+    }
+    
+    // Update the kill count on the UI
+    private void UpdateKillCountDisplay()
+    {
+        if (uiManager != null)
+        {
+            uiManager.UpdateKillCount(killCount, totalRabbits);
+        }
+    }
+    
+    // Get the current kill count
+    public int GetKillCount()
+    {
+        return killCount;
     }
     
     // Method to play sound effects

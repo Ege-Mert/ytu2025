@@ -35,13 +35,16 @@ MonoBehaviour:
   twitchInterval: 3
   twitchAmount: 0.2
   dialogLines:
-  - Sup
-  - Test1
-  - Test2
-  - Test3
+  - "Y\u0131llar \xF6nce \"D\xFCnyan\u0131n en iyi doktoru\" se\xE7ildim."
+  - "Bir ka\xE7 y\u0131l i\u015Fimi iyi yapt\u0131ktan sonra benden korkanlar hakk\u0131mda
+    yolsuzluk su\xE7lamas\u0131 yapt\u0131."
+  - "\u0130\xE7eri al\u0131n\u0131rken bu g\xF6mle\u011Fi bana verdiler acil bi durum
+    an\u0131nda beni direkt bulabilmek i\xE7in."
+  - "Art\u0131k hi\xE7 \xFCmidim kalmad\u0131... Sana olan sayg\u0131mdan bu g\xF6mle\u011Fi
+    sana veriyorum"
+  - "\u0130stememezlik yapmazs\u0131n de\u011Fil mi?"
   playerNormalSprite: {fileID: 0}
   playerChoiceSprite: {fileID: 0}
-  choiceA: Yes
-  choiceB: No
-  forcedResponse: No
-  forcedResponseDuration: 1
+  choiceA: Evet
+  choiceB: "Hay\u0131r"
+  responseDuration: 1

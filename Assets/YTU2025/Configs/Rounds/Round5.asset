@@ -18,6 +18,6 @@ MonoBehaviour:
   - "ger\xE7ekten"
   - bilerek
   - "yapmad\u0131m"
-  timePerWord: 5
+  timePerWord: 8
   isFinalRound: 1
   overrideLastWord: "yapt\u0131m"
