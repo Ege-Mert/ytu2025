@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61fd8e6abd180c94d98bc4703fa57c85, type: 3}
+  m_Name: Oppenent1
+  m_EditorClassIdentifier: 
+  opponentName: Prisoner
+  normalSprite: {fileID: 21300000, guid: 9f0c4dc324bf1614bb686a7f8ea4135c, type: 3}
+  nearLossSprite: {fileID: 21300000, guid: 7913246fe70aa924d8dd49dd9aed70a8, type: 3}
+  lossSprite: {fileID: 21300000, guid: f601efecc376c4e40989279722bfca47, type: 3}
+  nearWinSprite: {fileID: 21300000, guid: ab5f9209ed008fc4aa282cbdd730b6ba, type: 3}
+  winSprite: {fileID: 21300000, guid: 006386565c2f75e48be6230c3b30dc42, type: 3}
+  nearLossThreshold: 0.42
+  nearWinThreshold: 0.42
+  nearLossSound: 
+  nearWinSound: 
+  lossSound: 
+  winSound: 
+  sweetSpotSize: 0.3
+  driftSpeed: 0.5
+  staminaDrainInside: 0.4
+  staminaRecoverOutside: 0.15
+  riseSpeed: 3.41
+  fallSpeed: 1.2
+  timeLimit: 0
+  enableTwitching: 1
+  twitchInterval: 3
+  twitchAmount: 0.2
+  dialogLines:
+  - 
+  playerNormalSprite: {fileID: 0}
+  playerChoiceSprite: {fileID: 0}
+  choiceA: Yes
+  choiceB: No
+  forcedResponse: No
+  forcedResponseDuration: 1

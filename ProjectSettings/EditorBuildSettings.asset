@@ -11,4 +11,15 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/YTU2025/Scenes/DeadManTransitionScene.unity
     guid: bc3c613f6a4484344aa7bdb032aec13a
-  m_configObjects: {}
+  - enabled: 1
+    path: Assets/YTU2025/Scenes/CourtScene.unity
+    guid: 1ae62709be1afa34c8bbe25aefaf8706
+  - enabled: 1
+    path: Assets/YTU2025/Scenes/PrisonScene.unity
+    guid: 4ec0a50cfab74304db23db43a0dcfbfa
+  - enabled: 1
+    path: Assets/YTU2025/Scenes/HospitalScene.unity
+    guid: bdf687561bae5b043b13f640eff45694
+  m_configObjects:
+    com.unity.input.settings: {fileID: 11400000, guid: 9e7be553448fa2546aea5752021cbcf7,
+      type: 2}
