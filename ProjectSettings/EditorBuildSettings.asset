@@ -20,6 +20,15 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/YTU2025/Scenes/HospitalScene.unity
     guid: bdf687561bae5b043b13f640eff45694
+  - enabled: 1
+    path: Assets/YTU2025/Scenes/HospitalSceneComic.unity
+    guid: bbca754eed2938549b268ab34e2fba62
+  - enabled: 1
+    path: Assets/YTU2025/Scenes/MainMenu.unity
+    guid: cc6a499f5cb3a2f408951c6d3b0af18b
+  - enabled: 1
+    path: Assets/YTU2025/Scenes/PrisonEndingComicScene.unity
+    guid: a8b40009bf64f2f438b08f269095f15d
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 9e7be553448fa2546aea5752021cbcf7,
       type: 2}
