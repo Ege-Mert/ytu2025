@@ -6,29 +6,32 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/YTU2025/Scenes/ForestScene.unity
-    guid: 99c9720ab356a0642a771bea13969a05
-  - enabled: 1
-    path: Assets/YTU2025/Scenes/DeadManTransitionScene.unity
-    guid: bc3c613f6a4484344aa7bdb032aec13a
-  - enabled: 1
-    path: Assets/YTU2025/Scenes/CourtScene.unity
-    guid: 1ae62709be1afa34c8bbe25aefaf8706
-  - enabled: 1
-    path: Assets/YTU2025/Scenes/PrisonScene.unity
-    guid: 4ec0a50cfab74304db23db43a0dcfbfa
-  - enabled: 1
-    path: Assets/YTU2025/Scenes/HospitalScene.unity
-    guid: bdf687561bae5b043b13f640eff45694
-  - enabled: 1
-    path: Assets/YTU2025/Scenes/HospitalSceneComic.unity
-    guid: bbca754eed2938549b268ab34e2fba62
-  - enabled: 1
-    path: Assets/YTU2025/Scenes/MainMenu.unity
+    path: Assets/YTU2025/Scenes/MainMenu/MainMenu.unity
     guid: cc6a499f5cb3a2f408951c6d3b0af18b
   - enabled: 1
-    path: Assets/YTU2025/Scenes/PrisonEndingComicScene.unity
+    path: Assets/YTU2025/Scenes/Part1-Forest/ForestScene.unity
+    guid: 99c9720ab356a0642a771bea13969a05
+  - enabled: 1
+    path: Assets/YTU2025/Scenes/Part1-Forest/DeadManTransitionScene.unity
+    guid: bc3c613f6a4484344aa7bdb032aec13a
+  - enabled: 1
+    path: Assets/YTU2025/Scenes/Part2-Court/CourtScene.unity
+    guid: 1ae62709be1afa34c8bbe25aefaf8706
+  - enabled: 1
+    path: Assets/YTU2025/Scenes/Part3-Prison/PrisonScene.unity
+    guid: 4ec0a50cfab74304db23db43a0dcfbfa
+  - enabled: 1
+    path: Assets/YTU2025/Scenes/Part3-Prison/PrisonEndingComicScene.unity
     guid: a8b40009bf64f2f438b08f269095f15d
+  - enabled: 1
+    path: Assets/YTU2025/Scenes/Part4-Hospital/HospitalScene.unity
+    guid: bdf687561bae5b043b13f640eff45694
+  - enabled: 1
+    path: Assets/YTU2025/Scenes/Part4-Hospital/HospitalSceneComic.unity
+    guid: bbca754eed2938549b268ab34e2fba62
+  - enabled: 1
+    path: Assets/YTU2025/Scenes/EndingScene.unity
+    guid: 1f5f1544b7d34a64e959a30c40e84068
   m_configObjects:
     com.unity.input.settings: {fileID: 11400000, guid: 9e7be553448fa2546aea5752021cbcf7,
       type: 2}
