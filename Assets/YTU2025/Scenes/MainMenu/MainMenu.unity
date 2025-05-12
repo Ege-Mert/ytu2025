@@ -156,7 +156,7 @@ MonoBehaviour:
   startButton: {fileID: 800318040}
   optionsButton: {fileID: 2061702257}
   exitButton: {fileID: 1524601167}
-  firstLevelScene: ForestScene
+  firstLevelScene: IntroScene
   logoRect: {fileID: 0}
   gameTitle: {fileID: 0}
   titleAnimationDuration: 1.5
@@ -1294,7 +1294,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 116.1022, y: 134.4343}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &1874037861
 Canvas:

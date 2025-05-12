@@ -16,15 +16,38 @@ public class CourtSceneController : MonoBehaviour
     [SerializeField] private List<Transform> jurorTransforms;
     [SerializeField] private Transform playerTransform;
     
+    [Header("Character Sprites")]
+    [SerializeField] private SpriteRenderer lawyerRenderer;
+    [SerializeField] private SpriteRenderer judgeRenderer;
+    [SerializeField] private List<SpriteRenderer> jurorRenderers;
+    [SerializeField] private Sprite lawyerNormalSprite;
+    [SerializeField] private Sprite lawyerShockedSprite;
+    [SerializeField] private Sprite judgeNormalSprite;
+    [SerializeField] private Sprite judgeHammerSprite;
+    [SerializeField] private Sprite jurorNormalSprite;
+    [SerializeField] private Sprite jurorShockedSprite;
+    
     [Header("Chat Bubbles")]
     [SerializeField] private GameObject lawyerChatBubble;
     [SerializeField] private TextMeshProUGUI lawyerChatText;
     [SerializeField] private GameObject judgeChatBubble;
     [SerializeField] private TextMeshProUGUI judgeChatText;
     
+    [Header("Final Scene Bubbles")]
+    [SerializeField, Tooltip("Separate speech bubble for lawyer's shocked reaction")]
+    private GameObject lawyerShockedBubble;
+    [SerializeField] private TextMeshProUGUI lawyerShockedText;
+    [SerializeField, Tooltip("Second speech bubble for lawyer's plea")]
+    private GameObject lawyerPleaBubble;
+    [SerializeField] private TextMeshProUGUI lawyerPleaText;
+    
     [Header("Dialogue Text")]
     [SerializeField, Tooltip("First dialogue from lawyer")]
     private string lawyerIntroText = "Repeat after me.";
+    [SerializeField, Tooltip("Lawyer's first shocked response after final twist")]
+    private string lawyerShockedMessage = "Wait, that's not what I said!";
+    [SerializeField, Tooltip("Lawyer's second shocked response after final twist")]
+    private string lawyerPleaMessage = "Your Honor, there must be some mistake!";
     [SerializeField, Tooltip("Judge's response after each round")]
     private string judgeRegularResponse = "I dismiss your defense.";
     [SerializeField, Tooltip("Judge's final sentence")]
@@ -44,16 +67,38 @@ public class CourtSceneController : MonoBehaviour
     private float lawyerIntroTextDuration = 2.0f;
     [SerializeField, Tooltip("Pause after judge dismisses defense before next round")]
     private float pauseBeforeNextRound = 1.5f;
-    [SerializeField, Tooltip("Delay after gasp before judge's final sentence")]
-    private float gaspToSentenceDelay = 0.8f;
+    [SerializeField, Tooltip("Delay between judge hammer hits")]
+    private float hammerHitInterval = 0.5f;
+    [SerializeField, Tooltip("Duration of screen shake for each hammer hit")]
+    private float hammerShakeDuration = 0.2f;
+    [SerializeField, Tooltip("Intensity of screen shake for each hammer hit")]
+    private float hammerShakeIntensity = 0.3f;
+    [SerializeField, Tooltip("Duration of first shocked speech bubble")]
+    private float firstShockedBubbleDuration = 2.0f;
+    [SerializeField, Tooltip("Duration of second shocked speech bubble")]
+    private float secondShockedBubbleDuration = 2.0f;
+    [SerializeField, Tooltip("Delay after final sentence before fade begins")]
+    private float sentenceToFadeDelay = 3.0f;
     [SerializeField, Tooltip("Final fade to black duration")]
     private float finalFadeDuration = 1.0f;
     [SerializeField, Tooltip("Delay after fade to black before scene transition")]
     private float postFinalFadeDelay = 1.0f;
     
     [Header("Character Animation")]
-    [SerializeField] private float bounceAmplitude = 0.2f;
-    [SerializeField] private float bounceInterval = 0.5f;
+    [SerializeField, Tooltip("Stretch factor for the bounce effect (1.0 = no stretch)")]
+    private float bounceStretchFactor = 1.2f;
+    [SerializeField, Tooltip("Squash factor for the bounce effect (1.0 = no squash)")]
+    private float bounceSquashFactor = 0.8f;
+    [SerializeField, Tooltip("Initial bounce cycle duration")]
+    private float initialBounceCycleDuration = 0.5f;
+    [SerializeField, Tooltip("Fastest bounce cycle duration when timer is low")]
+    private float fastestBounceCycleDuration = 0.2f;
+    [SerializeField, Tooltip("Curve controlling the bounce motion")]
+    private AnimationCurve bounceCurve = AnimationCurve.EaseInOut(0, 0, 1, 1);
+    [SerializeField, Tooltip("Whether to squash the character horizontally while stretching vertically")]
+    private bool squashAndStretch = true;
+    [SerializeField, Tooltip("Threshold (0-1) of timer where bounce speed starts increasing")]
+    private float bounceSpeedupThreshold = 0.5f;
     [SerializeField] private List<Transform> allBouncingCharacters = new List<Transform>();
     
     [Header("Between-Round Transition")]
@@ -84,8 +129,9 @@ public class CourtSceneController : MonoBehaviour
     
     // State tracking
     private int currentRoundIndex = -1;
-    private Dictionary<Transform, Tween> characterBounces = new Dictionary<Transform, Tween>();
-    private Dictionary<Transform, Vector3> characterStartPositions = new Dictionary<Transform, Vector3>();
+    private Dictionary<Transform, Sequence> characterBounces = new Dictionary<Transform, Sequence>();
+    private Dictionary<Transform, Vector3> characterOriginalScales = new Dictionary<Transform, Vector3>();
+    private float currentBounceCycleDuration;
     
     private void Start()
     {
@@ -105,6 +151,7 @@ public class CourtSceneController : MonoBehaviour
         typingSystem.OnRoundComplete += HandleRoundComplete;
         typingSystem.OnRoundFailed += HandleRoundFailed;
         typingSystem.OnSentenceDisplayFinished += HandleSentenceDisplayFinished;
+        typingSystem.OnTimerUpdated += UpdateBounceSpeedBasedOnTimer;
         
         // Hide transition image if it exists
         if (roundTransitionImage != null)
@@ -112,9 +159,43 @@ public class CourtSceneController : MonoBehaviour
             roundTransitionImage.SetActive(false);
         }
         
+        // Hide final scene speech bubbles
+        if (lawyerShockedBubble != null) lawyerShockedBubble.SetActive(false);
+        if (lawyerPleaBubble != null) lawyerPleaBubble.SetActive(false);
+        
+        // Initialize bounce duration
+        currentBounceCycleDuration = initialBounceCycleDuration;
+        
+        // Set initial sprite states
+        SetCharacterSprites(false);
+        
         // Start with the scene fade-in sequence
         fadeCanvasGroup.alpha = 1f;
         StartCoroutine(IntroSequence());
+    }
+    
+    private void SetCharacterSprites(bool shocked)
+    {
+        // Set lawyer sprite
+        if (lawyerRenderer != null) 
+        {
+            lawyerRenderer.sprite = shocked ? lawyerShockedSprite : lawyerNormalSprite;
+        }
+        
+        // Set judge to normal sprite (hammer sprite is only used during animation)
+        if (judgeRenderer != null)
+        {
+            judgeRenderer.sprite = judgeNormalSprite;
+        }
+        
+        // Set all juror sprites
+        foreach (SpriteRenderer jurorRenderer in jurorRenderers)
+        {
+            if (jurorRenderer != null)
+            {
+                jurorRenderer.sprite = shocked ? jurorShockedSprite : jurorNormalSprite;
+            }
+        }
     }
     
     private IEnumerator IntroSequence()
@@ -176,12 +257,12 @@ public class CourtSceneController : MonoBehaviour
             }
         }
         
-        // Store starting positions
+        // Store original scales
         foreach (Transform character in allBouncingCharacters)
         {
             if (character != null)
             {
-                characterStartPositions[character] = character.position;
+                characterOriginalScales[character] = character.localScale;
             }
         }
     }
@@ -195,7 +276,7 @@ public class CourtSceneController : MonoBehaviour
         }
     }
     
-    // Method to start bouncing for a single character
+    // Method to start the squash and stretch bounce effect for a single character
     private void StartCharacterBounce(Transform characterTransform)
     {
         if (characterTransform == null) return;
@@ -203,20 +284,107 @@ public class CourtSceneController : MonoBehaviour
         // Stop any existing bounce
         StopCharacterBounce(characterTransform);
         
-        // Get start position (use stored position or current if not stored)
-        Vector3 startPos = characterStartPositions.ContainsKey(characterTransform) ? 
-            characterStartPositions[characterTransform] : characterTransform.position;
+        // Get original scale
+        Vector3 originalScale = characterOriginalScales.ContainsKey(characterTransform) ? 
+            characterOriginalScales[characterTransform] : characterTransform.localScale;
         
-        // Create the bounce tween
-        Tween bounceTween = characterTransform.DOMoveY(
-            startPos.y + bounceAmplitude, 
-            bounceInterval / 2)
-            .SetLoops(-1, LoopType.Yoyo)
-            .SetEase(Ease.InOutSine)
-            .SetId("CourtBounce");
+        // Create a bounce sequence
+        Sequence bounceSequence = DOTween.Sequence();
         
-        // Store the tween for later access
-        characterBounces[characterTransform] = bounceTween;
+        if (squashAndStretch)
+        {
+            // Stretch vertically, squash horizontally (conserving volume)
+            Vector3 stretchScale = new Vector3(
+                originalScale.x * Mathf.Sqrt(1f / bounceStretchFactor), // Reduce width to conserve "volume"
+                originalScale.y * bounceStretchFactor,                  // Stretch height
+                originalScale.z);
+            
+            // Squash vertically, stretch horizontally
+            Vector3 squashScale = new Vector3(
+                originalScale.x * Mathf.Sqrt(1f / bounceSquashFactor), // Increase width 
+                originalScale.y * bounceSquashFactor,                  // Squash height
+                originalScale.z);
+            
+            // Add the stretch phase (1/3 of cycle)
+            bounceSequence.Append(characterTransform.DOScale(stretchScale, currentBounceCycleDuration / 3f)
+                .SetEase(bounceCurve));
+            
+            // Add the squash phase (1/3 of cycle)
+            bounceSequence.Append(characterTransform.DOScale(squashScale, currentBounceCycleDuration / 3f)
+                .SetEase(bounceCurve));
+            
+            // Return to original scale (1/3 of cycle)
+            bounceSequence.Append(characterTransform.DOScale(originalScale, currentBounceCycleDuration / 3f)
+                .SetEase(bounceCurve));
+        }
+        else
+        {
+            // Simple vertical scaling only (maintain x scale)
+            Vector3 stretchScale = new Vector3(
+                originalScale.x,
+                originalScale.y * bounceStretchFactor, 
+                originalScale.z);
+            
+            Vector3 squashScale = new Vector3(
+                originalScale.x,
+                originalScale.y * bounceSquashFactor,
+                originalScale.z);
+            
+            // Add the stretch phase (1/3 of cycle)
+            bounceSequence.Append(characterTransform.DOScale(stretchScale, currentBounceCycleDuration / 3f)
+                .SetEase(bounceCurve));
+            
+            // Add the squash phase (1/3 of cycle)
+            bounceSequence.Append(characterTransform.DOScale(squashScale, currentBounceCycleDuration / 3f)
+                .SetEase(bounceCurve));
+            
+            // Return to original scale (1/3 of cycle)
+            bounceSequence.Append(characterTransform.DOScale(originalScale, currentBounceCycleDuration / 3f)
+                .SetEase(bounceCurve));
+        }
+        
+        // Set the sequence to loop infinitely
+        bounceSequence.SetLoops(-1, LoopType.Restart);
+        bounceSequence.SetId("CourtBounce");
+        
+        // Store the sequence for later reference
+        characterBounces[characterTransform] = bounceSequence;
+    }
+    
+    // Method to update the bounce speed based on timer
+    private void UpdateBounceSpeedBasedOnTimer(float normalizedTimeRemaining)
+    {
+        // Only speed up when timer is below threshold
+        if (normalizedTimeRemaining <= bounceSpeedupThreshold)
+        {
+            // Remap [0, threshold] to [0, 1] for interpolation
+            float t = 1f - (normalizedTimeRemaining / bounceSpeedupThreshold);
+            
+            // Calculate new bounce cycle duration using lerp
+            float newDuration = Mathf.Lerp(initialBounceCycleDuration, fastestBounceCycleDuration, t);
+            
+            // Only update if significantly different
+            if (Mathf.Abs(newDuration - currentBounceCycleDuration) > 0.01f)
+            {
+                currentBounceCycleDuration = newDuration;
+                
+                // Restart all bouncing with new speed
+                RestartAllBouncing();
+            }
+        }
+        else if (currentBounceCycleDuration != initialBounceCycleDuration)
+        {
+            // Reset to normal speed if we're above threshold and not already at normal speed
+            currentBounceCycleDuration = initialBounceCycleDuration;
+            RestartAllBouncing();
+        }
+    }
+    
+    // Method to restart all bouncing animations (preserving character list)
+    private void RestartAllBouncing()
+    {
+        StopAllBounces();
+        StartAllCharactersBouncing();
     }
     
     // Method to stop a single character from bouncing
@@ -224,7 +392,7 @@ public class CourtSceneController : MonoBehaviour
     {
         if (characterTransform == null) return;
         
-        // If we have an active tween for this character, kill it
+        // If we have an active sequence for this character, kill it
         if (characterBounces.ContainsKey(characterTransform) && 
             characterBounces[characterTransform] != null && 
             characterBounces[characterTransform].IsActive())
@@ -233,10 +401,10 @@ public class CourtSceneController : MonoBehaviour
             characterBounces.Remove(characterTransform);
         }
         
-        // Reset to starting position if we know it
-        if (characterStartPositions.ContainsKey(characterTransform))
+        // Reset to original scale if we know it
+        if (characterOriginalScales.ContainsKey(characterTransform))
         {
-            characterTransform.position = characterStartPositions[characterTransform];
+            characterTransform.localScale = characterOriginalScales[characterTransform];
         }
     }
     
@@ -246,12 +414,12 @@ public class CourtSceneController : MonoBehaviour
         // Kill all tweens with our identifier
         DOTween.Kill("CourtBounce");
         
-        // Reset all characters to their starting positions
+        // Reset all characters to their original scales
         foreach (Transform character in allBouncingCharacters)
         {
-            if (character != null && characterStartPositions.ContainsKey(character))
+            if (character != null && characterOriginalScales.ContainsKey(character))
             {
-                character.position = characterStartPositions[character];
+                character.localScale = characterOriginalScales[character];
             }
         }
         
@@ -259,15 +427,14 @@ public class CourtSceneController : MonoBehaviour
         characterBounces.Clear();
     }
     
-    // Method to adjust bounce amplitude and interval for all characters
-    public void AdjustBounceParameters(float newAmplitude, float newInterval)
+    // Method to adjust bounce parameters and restart animations
+    public void UpdateBounceParameters(float newStretchFactor, float newSquashFactor)
     {
-        bounceAmplitude = newAmplitude;
-        bounceInterval = newInterval;
+        bounceStretchFactor = newStretchFactor;
+        bounceSquashFactor = newSquashFactor;
         
         // Restart all bounces with new parameters
-        StopAllBounces();
-        StartAllCharactersBouncing();
+        RestartAllBouncing();
     }
     
     private void StartNextRound()
@@ -285,6 +452,10 @@ public class CourtSceneController : MonoBehaviour
         // Get the current round config
         CourtRoundConfig round = rounds[currentRoundIndex];
         
+        // Reset bounce cycle duration
+        currentBounceCycleDuration = initialBounceCycleDuration;
+        RestartAllBouncing();
+        
         // Configure and start the typing system for this round
         typingSystem.StartRound(round);
     }
@@ -292,7 +463,6 @@ public class CourtSceneController : MonoBehaviour
     private void HandleWordComplete(string word, bool isCorrect)
     {
         // This could play feedback sounds, animations, etc.
-        // For now, just logging
         Debug.Log($"Word complete: {word}, correct: {isCorrect}");
     }
     
@@ -305,24 +475,59 @@ public class CourtSceneController : MonoBehaviour
     
     private void HandleSentenceDisplayFinished(bool isLastRound)
     {
-        // Now show judge's response after the sentence display is finished
+        // Now show appropriate response after the sentence display is finished
         if (isLastRound)
         {
             // This is the final round with the twist
-            StartCoroutine(FinalRoundSequence());
+            StartCoroutine(FinalTwistSequence());
         }
         else
         {
-            // Regular round - show judge's dismissal text
-            ShowChatBubble(judgeChatBubble, judgeChatText, judgeRegularResponse);
-            
-            // Wait before next round
-            StartCoroutine(WaitForNextRound());
+            // Regular round - start judge's hammer animation before dismissing defense
+            StartCoroutine(JudgeHammerSequence());
         }
     }
     
-    private IEnumerator WaitForNextRound()
+    // Judge hammering animation between rounds
+    private IEnumerator JudgeHammerSequence()
     {
+        // Prepare for hammer hits
+        int hammerHits = 3;
+        
+        for (int i = 0; i < hammerHits; i++)
+        {
+            // Change to hammer sprite
+            if (judgeRenderer != null)
+            {
+                judgeRenderer.sprite = judgeHammerSprite;
+            }
+            
+            // Play gavel sound
+            PlaySound(gavelSoundName);
+            
+            // Shake the camera
+            ShakeCamera(hammerShakeIntensity, hammerShakeDuration);
+            
+            // Wait a moment
+            yield return new WaitForSeconds(hammerHitInterval);
+            
+            // Change back to normal sprite
+            if (judgeRenderer != null)
+            {
+                judgeRenderer.sprite = judgeNormalSprite;
+            }
+            
+            // Wait before next hit if not the last one
+            if (i < hammerHits - 1)
+            {
+                yield return new WaitForSeconds(hammerHitInterval * 0.5f);
+            }
+        }
+        
+        // Show judge's dismissal text
+        ShowChatBubble(judgeChatBubble, judgeChatText, judgeRegularResponse);
+        
+        // Wait before next round
         yield return new WaitForSeconds(pauseBeforeNextRound);
         
         // Hide judge chat bubble
@@ -336,6 +541,42 @@ public class CourtSceneController : MonoBehaviour
         
         // Start next round
         StartNextRound();
+    }
+    
+    // Helper method to shake the camera
+    private void ShakeCamera(float intensity, float duration)
+    {
+        if (mainCamera == null) return;
+        
+        // Store original position
+        Vector3 originalPos = mainCamera.transform.position;
+        
+        // Create shake sequence
+        Sequence shakeSeq = DOTween.Sequence();
+        
+        // Add random shake movements
+        int shakeSteps = 10;
+        for (int i = 0; i < shakeSteps; i++)
+        {
+            float progress = (float)i / shakeSteps;
+            float decreaseFactor = 1f - progress; // Decrease intensity over time
+            
+            Vector3 randomOffset = new Vector3(
+                Random.Range(-intensity, intensity) * decreaseFactor,
+                Random.Range(-intensity, intensity) * decreaseFactor,
+                0
+            );
+            
+            shakeSeq.Append(mainCamera.transform.DOMove(
+                originalPos + randomOffset, 
+                duration / shakeSteps));
+        }
+        
+        // Return to original position
+        shakeSeq.Append(mainCamera.transform.DOMove(originalPos, duration / shakeSteps));
+        
+        // Play the sequence
+        shakeSeq.Play();
     }
     
     private IEnumerator PlayRoundTransition()
@@ -375,24 +616,57 @@ public class CourtSceneController : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
     
-    private IEnumerator FinalRoundSequence()
+    private IEnumerator FinalTwistSequence()
     {
-        // Stop all bounce animations
-        StopAllBounces();
-        
         // Play gasp sound
         PlaySound(gaspSoundName);
         
-        // TODO: Swap lawyer & jurors to shocked sprites
-        // This would be handled here if you have sprite swap functionality
+        // Change lawyer and jury to shocked sprites
+        SetCharacterSprites(true);
         
-        yield return new WaitForSeconds(gaspToSentenceDelay);
+        // Show lawyer's first shocked response (now using the separate bubble)
+        if (lawyerShockedBubble != null && lawyerShockedText != null)
+        {
+            lawyerShockedText.text = lawyerShockedMessage;
+            lawyerShockedBubble.SetActive(true);
+        }
+        
+        // Wait for the first shocked bubble to be read
+        yield return new WaitForSeconds(firstShockedBubbleDuration);
+        
+        // Hide first shocked bubble
+        if (lawyerShockedBubble != null)
+        {
+            lawyerShockedBubble.SetActive(false);
+        }
+        
+        // Show lawyer's second plea (using separate bubble)
+        if (lawyerPleaBubble != null && lawyerPleaText != null)
+        {
+            lawyerPleaText.text = lawyerPleaMessage;
+            lawyerPleaBubble.SetActive(true);
+        }
+        
+        // Wait for the second shocked bubble to be read
+        yield return new WaitForSeconds(secondShockedBubbleDuration);
+        
+        // Hide second plea bubble
+        if (lawyerPleaBubble != null)
+        {
+            lawyerPleaBubble.SetActive(false);
+        }
+        
+        // Stop all bounce animations
+        StopAllBounces();
+        
+        // Start judge's hammer animation
+        yield return StartCoroutine(JudgeFinalHammerHit());
         
         // Show judge's final sentence
         ShowChatBubble(judgeChatBubble, judgeChatText, judgeFinalSentence);
         
-        // Play gavel sound
-        PlaySound(gavelSoundName);
+        // Wait longer before starting the fade
+        yield return new WaitForSeconds(sentenceToFadeDelay);
         
         // Fade to black
         fadeCanvasGroup.DOFade(1, finalFadeDuration);
@@ -411,6 +685,31 @@ public class CourtSceneController : MonoBehaviour
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         }
         // If neither is true, the scene just ends with black screen
+    }
+    
+    // Special single hammer hit for final sentence
+    private IEnumerator JudgeFinalHammerHit()
+    {
+        // Change to hammer sprite
+        if (judgeRenderer != null)
+        {
+            judgeRenderer.sprite = judgeHammerSprite;
+        }
+        
+        // Play gavel sound
+        PlaySound(gavelSoundName);
+        
+        // Shake the camera with more intensity
+        ShakeCamera(hammerShakeIntensity * 1.5f, hammerShakeDuration * 1.5f);
+        
+        // Wait a moment
+        yield return new WaitForSeconds(hammerHitInterval);
+        
+        // Change back to normal sprite
+        if (judgeRenderer != null)
+        {
+            judgeRenderer.sprite = judgeNormalSprite;
+        }
     }
     
     private void ShowChatBubble(GameObject bubble, TextMeshProUGUI textComponent, string message)
@@ -456,6 +755,7 @@ public class CourtSceneController : MonoBehaviour
         // Clean up any remaining tweens
         StopAllBounces();
         DOTween.Kill(roundTransitionImage);
+        DOTween.Kill(mainCamera.transform);
         
         // Remove event listeners
         if (typingSystem != null)
@@ -464,30 +764,21 @@ public class CourtSceneController : MonoBehaviour
             typingSystem.OnRoundComplete -= HandleRoundComplete;
             typingSystem.OnRoundFailed -= HandleRoundFailed;
             typingSystem.OnSentenceDisplayFinished -= HandleSentenceDisplayFinished;
+            typingSystem.OnTimerUpdated -= UpdateBounceSpeedBasedOnTimer;
         }
     }
     
     // Public methods to control bouncing from other scripts if needed
-    public void SetBounceAmplitude(float amplitude)
+    public void SetBounceStretchFactor(float stretchFactor)
     {
-        bounceAmplitude = amplitude;
-        
-        // Apply to active bounces
-        if (characterBounces.Count > 0)
-        {
-            AdjustBounceParameters(amplitude, bounceInterval);
-        }
+        bounceStretchFactor = stretchFactor;
+        UpdateBounceParameters(bounceStretchFactor, bounceSquashFactor);
     }
     
-    public void SetBounceInterval(float interval)
+    public void SetBounceSquashFactor(float squashFactor)
     {
-        bounceInterval = interval;
-        
-        // Apply to active bounces
-        if (characterBounces.Count > 0)
-        {
-            AdjustBounceParameters(bounceAmplitude, interval);
-        }
+        bounceSquashFactor = squashFactor;
+        UpdateBounceParameters(bounceStretchFactor, bounceSquashFactor);
     }
     
     // Optional: Add characters to bounce list at runtime
@@ -496,7 +787,7 @@ public class CourtSceneController : MonoBehaviour
         if (character != null && !allBouncingCharacters.Contains(character))
         {
             allBouncingCharacters.Add(character);
-            characterStartPositions[character] = character.position;
+            characterOriginalScales[character] = character.localScale;
             StartCharacterBounce(character);
         }
     }
@@ -508,10 +799,17 @@ public class CourtSceneController : MonoBehaviour
         {
             StopCharacterBounce(character);
             allBouncingCharacters.Remove(character);
-            if (characterStartPositions.ContainsKey(character))
+            if (characterOriginalScales.ContainsKey(character))
             {
-                characterStartPositions.Remove(character);
+                characterOriginalScales.Remove(character);
             }
         }
+    }
+    
+    // For debugging purposes
+    public void ToggleSquashAndStretch()
+    {
+        squashAndStretch = !squashAndStretch;
+        RestartAllBouncing();
     }
 }

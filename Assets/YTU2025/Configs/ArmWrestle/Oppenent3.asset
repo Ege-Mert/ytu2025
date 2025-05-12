@@ -24,27 +24,27 @@ MonoBehaviour:
   nearWinSound: 
   lossSound: 
   winSound: 
-  sweetSpotSize: 0.3
-  driftSpeed: 0.5
-  staminaDrainInside: 0.4
-  staminaRecoverOutside: 0.15
-  riseSpeed: 2.5
+  sweetSpotSize: 0.25
+  driftSpeed: 0.9
+  staminaDrainInside: 0.25
+  staminaRecoverOutside: 0.34
+  riseSpeed: 1.2
   fallSpeed: 1.2
   timeLimit: 0
-  enableTwitching: 1
-  twitchInterval: 3
-  twitchAmount: 0.2
+  enableTwitching: 0
+  twitchInterval: 1.2
+  twitchAmount: 0.3
   dialogLines:
-  - "Y\u0131llar \xF6nce \"D\xFCnyan\u0131n en iyi doktoru\" se\xE7ildim."
-  - "Bir ka\xE7 y\u0131l i\u015Fimi iyi yapt\u0131ktan sonra benden korkanlar hakk\u0131mda
-    yolsuzluk su\xE7lamas\u0131 yapt\u0131."
-  - "\u0130\xE7eri al\u0131n\u0131rken bu g\xF6mle\u011Fi bana verdiler acil bi durum
-    an\u0131nda beni direkt bulabilmek i\xE7in."
-  - "Art\u0131k hi\xE7 \xFCmidim kalmad\u0131... Sana olan sayg\u0131mdan bu g\xF6mle\u011Fi
-    sana veriyorum"
-  - "\u0130stememezlik yapmazs\u0131n de\u011Fil mi?"
-  playerNormalSprite: {fileID: 0}
-  playerChoiceSprite: {fileID: 0}
-  choiceA: Evet
-  choiceB: "Hay\u0131r"
+  - "Years ago, I was chosen as the \u2018Best Doctor in the World."
+  - After doing my job well for a few years, those who feared me brought corruption
+    charges against me.
+  - When I was taken inside, they gave me this shirt so that they could find me immediately
+    in an emergency.
+  - "I have no hope left\u2026 Out of respect for you, I\u2019m giving this shirt
+    to you."
+  - "You won\u2019t refuse, will you?"
+  playerNormalSprite: {fileID: 21300000, guid: 85fc0348f9a774d4b8b51220690b3d05, type: 3}
+  playerChoiceSprite: {fileID: 21300000, guid: 91b14f4175217a6489e00d14156c9bd4, type: 3}
+  choiceA: Yes
+  choiceB: No
   responseDuration: 1

@@ -2,6 +2,22 @@
 
 This README provides instructions for setting up the Arm Wrestling minigame and Visual Novel components.
 
+## Randomness and UI Customization
+
+You can configure these aspects of the arm wrestling mechanic:
+
+1. **UI Boundaries**:
+   - Set the `minY` and `maxY` values to change the vertical boundaries of the bars
+   - Adjust `boundaryPadding` to control the padding from the edges
+
+2. **Randomness Settings**:
+   - Enable/disable randomness with the `enableRandomness` checkbox
+   - Control the chance of random direction changes with `randomDriftChance`
+   - Adjust the speed variation with `randomSpeedVariation`
+   - Control the random movement jitter with `randomMovementAmplitude`
+
+These settings make each round feel unique and more challenging!
+
 ## Visual Novel Choice Mechanism
 
 The visual novel features a unique choice mechanism:

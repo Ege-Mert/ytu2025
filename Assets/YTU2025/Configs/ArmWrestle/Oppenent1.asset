@@ -26,12 +26,12 @@ MonoBehaviour:
   winSound: 
   sweetSpotSize: 0.3
   driftSpeed: 0.5
-  staminaDrainInside: 0.4
-  staminaRecoverOutside: 0.15
-  riseSpeed: 3.41
+  staminaDrainInside: 0.34
+  staminaRecoverOutside: 0.2
+  riseSpeed: 1.2
   fallSpeed: 1.2
   timeLimit: 0
-  enableTwitching: 1
+  enableTwitching: 0
   twitchInterval: 3
   twitchAmount: 0.2
   dialogLines:
@@ -40,5 +40,4 @@ MonoBehaviour:
   playerChoiceSprite: {fileID: 0}
   choiceA: Yes
   choiceB: No
-  forcedResponse: No
-  forcedResponseDuration: 1
+  responseDuration: 1

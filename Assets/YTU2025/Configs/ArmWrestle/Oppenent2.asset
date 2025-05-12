@@ -24,11 +24,11 @@ MonoBehaviour:
   nearWinSound: 
   lossSound: 
   winSound: 
-  sweetSpotSize: 0.3
-  driftSpeed: 0.5
-  staminaDrainInside: 0.4
-  staminaRecoverOutside: 0.15
-  riseSpeed: 3.26
+  sweetSpotSize: 0.27
+  driftSpeed: 0.7
+  staminaDrainInside: 0.3
+  staminaRecoverOutside: 0.25
+  riseSpeed: 1.2
   fallSpeed: 1.2
   timeLimit: 0
   enableTwitching: 1
@@ -40,5 +40,4 @@ MonoBehaviour:
   playerChoiceSprite: {fileID: 0}
   choiceA: Yes
   choiceB: No
-  forcedResponse: No
-  forcedResponseDuration: 1
+  responseDuration: 1

@@ -52,6 +52,7 @@ public class CourtTypingSystem : MonoBehaviour
     public event Action<bool> OnRoundComplete;
     public event Action OnRoundFailed;
     public event Action<bool> OnSentenceDisplayFinished;
+    public event Action<float> OnTimerUpdated; // Sends normalized time remaining (0-1)
     
     // Current state
     private CourtRoundConfig currentRound;
@@ -322,7 +323,11 @@ public class CourtTypingSystem : MonoBehaviour
             // Update radial fill
             if (radialTimer != null)
             {
-                radialTimer.fillAmount = Mathf.Clamp01(timeRemaining / timeForWord);
+                float normalizedTimeRemaining = Mathf.Clamp01(timeRemaining / timeForWord);
+                radialTimer.fillAmount = normalizedTimeRemaining;
+                
+                // Notify listeners about timer update
+                OnTimerUpdated?.Invoke(normalizedTimeRemaining);
             }
             
             yield return null;

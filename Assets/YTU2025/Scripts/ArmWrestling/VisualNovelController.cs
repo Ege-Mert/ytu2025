@@ -187,32 +187,44 @@ public class VisualNovelController : MonoBehaviour
             return;
         
         // Check for player input to advance dialogue
-        if (waitingForInput && (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Space)))
+        if (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.Space))
         {
             if (isTyping)
             {
-                // Skip typing animation
-                StopAllCoroutines();
-                if (dialogueText != null && currentLineIndex < dialogueLines.Length)
-                {
-                    dialogueText.text = dialogueLines[currentLineIndex];
-                }
-                isTyping = false;
-                
-                // Show click indicator after delay
-                if (clickIndicatorCoroutine != null)
-                {
-                    StopCoroutine(clickIndicatorCoroutine);
-                }
-                clickIndicatorCoroutine = StartCoroutine(ShowClickIndicator());
+                // Skip typing animation - instantly show full text
+                SkipTypewriterEffect();
             }
-            else
+            else if (waitingForInput)
             {
                 // Move to the next line
                 currentLineIndex++;
                 DisplayNextLine();
             }
         }
+    }
+    
+    // Method to skip the typewriter effect and show the full text immediately
+    private void SkipTypewriterEffect()
+    {
+        // Stop any ongoing typing coroutines
+        StopAllCoroutines();
+        
+        // Display the full text immediately
+        if (dialogueText != null && currentLineIndex < dialogueLines.Length)
+        {
+            dialogueText.text = dialogueLines[currentLineIndex];
+        }
+        
+        // Update state variables
+        isTyping = false;
+        waitingForInput = true;
+        
+        // Restart the click indicator coroutine
+        if (clickIndicatorCoroutine != null)
+        {
+            StopCoroutine(clickIndicatorCoroutine);
+        }
+        clickIndicatorCoroutine = StartCoroutine(ShowClickIndicator());
     }
     
     private void DisplayNextLine()
@@ -240,7 +252,9 @@ public class VisualNovelController : MonoBehaviour
     
     private IEnumerator TypeDialogue(string line)
     {
+        // Set typing state to true so we know we're in the process of displaying text
         isTyping = true;
+        waitingForInput = false; // Allow input to skip text even if not finished
         
         if (dialogueText != null)
         {
@@ -248,20 +262,28 @@ public class VisualNovelController : MonoBehaviour
             
             foreach (char c in line)
             {
+                // Check if typing has been interrupted (by skipping)
+                if (!isTyping)
+                    break;
+                    
                 dialogueText.text += c;
                 yield return new WaitForSeconds(textSpeed);
             }
         }
         
-        isTyping = false;
-        waitingForInput = true;
-        
-        // Show click indicator after delay
-        if (clickIndicatorCoroutine != null)
+        // Only set these if we finished typing naturally (not skipped)
+        if (isTyping)
         {
-            StopCoroutine(clickIndicatorCoroutine);
+            isTyping = false;
+            waitingForInput = true;
+            
+            // Show click indicator after delay
+            if (clickIndicatorCoroutine != null)
+            {
+                StopCoroutine(clickIndicatorCoroutine);
+            }
+            clickIndicatorCoroutine = StartCoroutine(ShowClickIndicator());
         }
-        clickIndicatorCoroutine = StartCoroutine(ShowClickIndicator());
     }
     
     private IEnumerator ShowClickIndicator()
@@ -323,7 +345,17 @@ public class VisualNovelController : MonoBehaviour
         // Change player sprite to choice sprite
         if (playerSprite != null && currentOpponent.playerChoiceSprite != null)
         {
+            // Log sprite change for debugging
+            Debug.Log($"Changing player sprite from {playerSprite.sprite?.name} to {currentOpponent.playerChoiceSprite.name}");
             playerSprite.sprite = currentOpponent.playerChoiceSprite;
+        }
+        else
+        {
+            // Debug why sprite change failed
+            if (playerSprite == null)
+                Debug.LogError("Player sprite reference is null! Cannot change sprite.");
+            else if (currentOpponent.playerChoiceSprite == null)
+                Debug.LogError("PlayerChoiceSprite is not set in the ArmWrestleOpponentConfig! Set it in the inspector.");
         }
         
         // Show the opposite choice text as the response

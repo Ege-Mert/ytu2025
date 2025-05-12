@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using DG.Tweening;
 using TMPro;
 using System;
@@ -15,6 +16,7 @@ public class OperationManager : MonoBehaviour
     [SerializeField] private Transform wireContainer;      // Parent object for wire ends
     [SerializeField] private OperationTimer operationTimer; // Reference to the timer
     [SerializeField] private Image fadeImage;              // For scene transitions
+    [SerializeField] private CanvasGroup canvasGroup;      // For fading out the entire UI
     
     [Header("Prefabs")]
     [SerializeField] private GameObject socketPrefab;      // Prefab for sockets
@@ -26,6 +28,11 @@ public class OperationManager : MonoBehaviour
     [SerializeField] private string incorrectConnectionSFX = "connection_incorrect";
     [SerializeField] private string heartbeatStabilizeSFX = "heartbeat_stabilize";
     [SerializeField] private string flatlineSFX = "flatline";
+    
+    [Header("Scene Transitions")]
+    [SerializeField] private string successSceneName = "SuccessScene";  // Scene to load on success
+    [SerializeField] private string failureSceneName = "FailureScene";  // Scene to load on failure
+    [SerializeField] private float fadeOutDuration = 1f;  // Duration of the fade out transition
     
     [Header("Debug")]
     [SerializeField] private bool debugMode = true;        // Enable debug logs
@@ -377,31 +384,46 @@ public class OperationManager : MonoBehaviour
     {
         yield return new WaitForSeconds(delay);
         
+        // Determine which scene to load
+        string nextScene = success ? successSceneName : failureSceneName;
+        
         if (debugMode)
         {
-            Debug.Log($"Transitioning to {(success ? "success" : "failure")} scene after delay");
+            Debug.Log($"Transitioning to {nextScene} scene after delay");
         }
         
-        // Fade to black
-        if (uiManager != null)
+        // Fade out using canvas group
+        if (canvasGroup != null)
         {
-            uiManager.FadeToBlack(1f, () => {
-                // Load the next scene based on success/failure
-                if (gameManager != null)
-                {
-                    if (success)
-                    {
-                        // Load success scene
-                        gameManager.LoadScene("SuccessScene"); // Replace with your actual scene name
-                    }
-                    else
-                    {
-                        // Load failure scene
-                        gameManager.LoadScene("FailureScene"); // Replace with your actual scene name
-                    }
-                }
-            });
+            if (debugMode) Debug.Log("Starting canvas group fade out");
+            
+            // Disable interaction during fade
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
+            
+            // Fade out the canvas group
+            float elapsedTime = 0;
+            float startAlpha = canvasGroup.alpha;
+            
+            while (elapsedTime < fadeOutDuration)
+            {
+                elapsedTime += Time.deltaTime;
+                canvasGroup.alpha = Mathf.Lerp(startAlpha, 1f, elapsedTime / fadeOutDuration);
+                yield return null;
+            }
+            
+            // Ensure alpha is fully at 0
+            canvasGroup.alpha = 1f;
+            
+            if (debugMode) Debug.Log($"Fade out complete, loading scene: {nextScene}");
         }
+        else if (debugMode)
+        {
+            Debug.LogWarning("No canvas group assigned for fade out effect");
+        }
+        
+        // Load the next scene directly using SceneManager
+        SceneManager.LoadScene(nextScene);
     }
     
     #endregion

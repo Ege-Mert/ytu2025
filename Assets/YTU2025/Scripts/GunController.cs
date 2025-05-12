@@ -14,6 +14,12 @@ public class GunController : MonoBehaviour
     [SerializeField] private float screenShakeAmount = 0.2f;
     [SerializeField] private float screenShakeDuration = 0.2f;
     
+    [Header("Gun Sprite Settings")]
+    [SerializeField] private Image gunSpriteImage; // Reference to the gun's Image component
+    [SerializeField] private Sprite normalSprite; // Normal gun sprite
+    [SerializeField] private Sprite firingSprite; // Sprite to show when firing
+    [SerializeField] private float firingSpriteDisplayTime = 0.2f; // How long to show firing sprite
+    
     [Header("Ammo")]
     [SerializeField] private int maxAmmo = 2;
     private int currentAmmo;
@@ -41,6 +47,18 @@ public class GunController : MonoBehaviour
         if (gunImage == null && uiManager != null)
         {
             gunImage = uiManager.GetGunContainer();
+        }
+        
+        // If gunSpriteImage is not set, try to get it from the gun image
+        if (gunSpriteImage == null && gunImage != null)
+        {
+            gunSpriteImage = gunImage.GetComponent<Image>();
+        }
+        
+        // Store the normal sprite if not set in inspector
+        if (normalSprite == null && gunSpriteImage != null)
+        {
+            normalSprite = gunSpriteImage.sprite;
         }
         
         // Initialize
@@ -112,6 +130,9 @@ public class GunController : MonoBehaviour
         // Update UI
         UpdateAmmoUI();
         
+        // Show firing sprite
+        ShowFiringSprite();
+        
         // Screen shake for recoil
         ScreenShake();
         
@@ -136,6 +157,12 @@ public class GunController : MonoBehaviour
             if (rabbit != null)
             {
                 rabbit.Die();
+                
+                // Play rabbit kill sound
+                if (gameManager != null)
+                {
+                    gameManager.PlaySound("rabbitDeath");
+                }
             }
         }
         
@@ -144,6 +171,22 @@ public class GunController : MonoBehaviour
         {
             Reload();
         }
+    }
+    
+    private void ShowFiringSprite()
+    {
+        if (gunSpriteImage == null || firingSprite == null) return;
+        
+        // Change to firing sprite
+        gunSpriteImage.sprite = firingSprite;
+        
+        // Set back to normal sprite after delay
+        DOVirtual.DelayedCall(firingSpriteDisplayTime, () => {
+            if (gunSpriteImage != null && normalSprite != null)
+            {
+                gunSpriteImage.sprite = normalSprite;
+            }
+        });
     }
     
     private void UpdateAmmoUI()

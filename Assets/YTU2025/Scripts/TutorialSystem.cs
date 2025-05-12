@@ -28,18 +28,13 @@ public class TutorialSystem : MonoBehaviour
     private bool isTutorialActive = false;
     private bool wasGamePaused = false;
     
-    void Awake()
+    // Called at the earliest possible moment during script initialization
+    private void Awake()
     {
         // If tutorial key isn't set, use the scene name
         if (string.IsNullOrEmpty(tutorialKey))
         {
             tutorialKey = "Tutorial_" + UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-        }
-        
-        // Make sure the tutorial canvas is initially inactive
-        if (tutorialCanvas != null)
-        {
-            tutorialCanvas.gameObject.SetActive(false);
         }
         
         // Hide all pages initially except the first one
@@ -49,7 +44,7 @@ public class TutorialSystem : MonoBehaviour
             {
                 if (tutorialPages[i] != null)
                 {
-                    tutorialPages[i].gameObject.SetActive(false);
+                    tutorialPages[i].gameObject.SetActive(i == 0);
                 }
             }
         }
@@ -59,28 +54,62 @@ public class TutorialSystem : MonoBehaviour
         {
             clickToContinueText.gameObject.SetActive(false);
         }
+        
+        // Freeze game time immediately
+        if (pauseGameDuringTutorial)
+        {
+            wasGamePaused = Time.timeScale == 0f;
+            if (!wasGamePaused)
+            {
+                Time.timeScale = 0f;
+            }
+        }
+        
+        // Check if we should show the tutorial
+        bool shouldShowTutorial = !(showTutorialOnce && PlayerPrefs.GetInt(tutorialKey, 0) == 1);
+        
+        // Ensure tutorial canvas state is set correctly from the very start
+        if (tutorialCanvas != null)
+        {
+            tutorialCanvas.gameObject.SetActive(shouldShowTutorial);
+            
+            // If showing tutorial, make sure it's fully visible
+            if (shouldShowTutorial)
+            {
+                // Ensure the canvas has a CanvasGroup component for fading
+                CanvasGroup canvasGroup = tutorialCanvas.GetComponent<CanvasGroup>();
+                if (canvasGroup == null)
+                {
+                    canvasGroup = tutorialCanvas.gameObject.AddComponent<CanvasGroup>();
+                }
+                canvasGroup.alpha = 1f;
+                
+                // Set the flag
+                isTutorialActive = true;
+                
+                // Play sound effect if specified
+                if (!string.IsNullOrEmpty(tutorialOpenSoundName) && SoundManager.instance != null)
+                {
+                    SoundManager.instance.Play(tutorialOpenSoundName);
+                }
+                
+                // Disable player control
+                DisablePlayerControls();
+            }
+        }
     }
     
     void Start()
     {
-        // Short delay to ensure everything is initialized
-        StartCoroutine(DelayedStart());
-    }
-    
-    IEnumerator DelayedStart()
-    {
-        // Wait a brief moment to ensure PauseMenu is initialized first
-        yield return new WaitForSecondsRealtime(0.1f);
-        
-        // Check if we should show the tutorial
+        // If we're not going to show the tutorial at all, we need to ensure the game is unpaused
         if (showTutorialOnce && PlayerPrefs.GetInt(tutorialKey, 0) == 1)
         {
-            // Tutorial already shown, don't show again
-            yield break;
+            // Tutorial already shown, don't show again and make sure game is running
+            if (pauseGameDuringTutorial && !wasGamePaused)
+            {
+                Time.timeScale = 1f;
+            }
         }
-        
-        // Show the tutorial immediately
-        ShowTutorial();
     }
     
     void Update()

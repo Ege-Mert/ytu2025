@@ -1,4 +1,7 @@
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 [CreateAssetMenu(fileName = "New Opponent", menuName = "Game/Arm Wrestle Opponent")]
 public class ArmWrestleOpponentConfig : ScriptableObject
@@ -61,7 +64,9 @@ public class ArmWrestleOpponentConfig : ScriptableObject
     public string[] dialogLines;
     
     [Header("Visual Novel Character Sprites")]
+    [Tooltip("Player's default sprite shown during dialogue")]
     public Sprite playerNormalSprite;  // Player's default sprite
+    [Tooltip("Player's sprite shown after making a choice - set this in the inspector!")]
     public Sprite playerChoiceSprite;  // Player's sprite after making a choice
     
     [Header("Visual Novel Choice")]
@@ -69,4 +74,16 @@ public class ArmWrestleOpponentConfig : ScriptableObject
     public string choiceB = "No";
     [Tooltip("How long to show the response before transitioning (seconds)")]
     public float responseDuration = 1f;
+    
+#if UNITY_EDITOR
+    // This will run in the Unity Editor to validate required fields
+    private void OnValidate()
+    {
+        // Check for missing choice sprite
+        if (playerChoiceSprite == null)
+        {
+            Debug.LogWarning($"[{name}] Player choice sprite is not set! The player's sprite won't change when making a choice.", this);
+        }
+    }
+#endif
 }

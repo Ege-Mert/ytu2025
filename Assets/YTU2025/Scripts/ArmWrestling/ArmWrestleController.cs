@@ -55,9 +55,31 @@ public class ArmWrestleController : MonoBehaviour
     [Header("Visual Novel Transition")]
     [SerializeField] private float delayBeforeVN = 2.0f;
     
+    [Header("Game Over")]
+    [SerializeField] private float gameOverDelay = 2.0f; // Delay before reloading scene on loss
+    
+    [Header("Randomness Settings")]
+    [SerializeField] private bool enableRandomness = true;
+    [SerializeField] [Range(0f, 1f)] private float randomDriftChance = 0.05f; // Chance of random direction change
+    [SerializeField] [Range(0f, 0.5f)] private float randomSpeedVariation = 0.2f; // Speed variation amount
+    [SerializeField] [Range(0f, 0.2f)] private float randomMovementAmplitude = 0.05f; // Random movement amplitude
+    
     // UI bounds parameters
-    private float minY = 0;
-    private float maxY = 1;
+    [Header("UI Bounds Settings")]
+    [SerializeField] private bool useSharedBoundaries = false;
+    [SerializeField] private bool visualizeBoundaries = false;
+    [SerializeField] private Color boundaryVisualizationColor = new Color(1f, 0f, 0f, 0.3f);
+    
+    [Header("Sweet Spot Boundaries")]
+    [SerializeField] private float sweetSpotMinY = 0.05f; // Minimum position for sweet spot
+    [SerializeField] private float sweetSpotMaxY = 0.95f; // Maximum position for sweet spot
+    [SerializeField] private float sweetSpotPadding = 0.02f; // Padding at sweet spot boundaries
+    
+    [Header("Player Bar Boundaries")]
+    [SerializeField] private float playerMinY = 0.05f; // Minimum position for player bar
+    [SerializeField] private float playerMaxY = 0.95f; // Maximum position for player bar
+    [SerializeField] private float playerPadding = 0.02f; // Padding at player boundaries
+    
     private float meterHeight;
     
     // Game state
@@ -117,6 +139,14 @@ public class ArmWrestleController : MonoBehaviour
             staminaFillImage.type = Image.Type.Filled;
             staminaFillImage.fillMethod = Image.FillMethod.Vertical;
             staminaFillImage.fillOrigin = (int)Image.OriginVertical.Bottom;
+        }
+        
+        // If using shared boundaries, copy the sweet spot values to player values
+        if (useSharedBoundaries)
+        {
+            playerMinY = sweetSpotMinY;
+            playerMaxY = sweetSpotMaxY;
+            playerPadding = sweetSpotPadding;
         }
         
         // Start the first round
@@ -182,13 +212,38 @@ public class ArmWrestleController : MonoBehaviour
         ArmWrestleOpponentConfig opponent = opponents[currentOpponentIndex];
         
         // 1) Update sweet spot position (drift)
-        sweetCenterY += driftDir * opponent.driftSpeed * Time.deltaTime;
+        float currentDriftSpeed = opponent.driftSpeed;
         
-        // Bounce at edges
-        if (sweetCenterY > maxY - (opponent.sweetSpotSize / 2) || sweetCenterY < minY + (opponent.sweetSpotSize / 2))
+        // Apply random speed variation if enabled
+        if (enableRandomness)
+        {
+            // Random speed variation
+            currentDriftSpeed *= (1f + Random.Range(-randomSpeedVariation, randomSpeedVariation));
+            
+            // Random direction change
+            if (Random.value < randomDriftChance * Time.deltaTime)
+            {
+                driftDir *= -1;
+                Debug.Log("Random direction change!");
+            }
+            
+            // Random movement jitter
+            float randomJitter = Random.Range(-randomMovementAmplitude, randomMovementAmplitude) * Time.deltaTime;
+            sweetCenterY += randomJitter;
+        }
+        
+        // Apply the drift movement
+        sweetCenterY += driftDir * currentDriftSpeed * Time.deltaTime;
+        
+        // Bounce at edges with padding for sweet spot
+        float topBoundary = sweetSpotMaxY - (opponent.sweetSpotSize / 2) - sweetSpotPadding;
+        float bottomBoundary = sweetSpotMinY + (opponent.sweetSpotSize / 2) + sweetSpotPadding;
+        
+        if (sweetCenterY > topBoundary || sweetCenterY < bottomBoundary)
         {
             driftDir *= -1;
-            sweetCenterY = Mathf.Clamp(sweetCenterY, minY + (opponent.sweetSpotSize / 2), maxY - (opponent.sweetSpotSize / 2));
+            // Clamp to boundaries to prevent getting stuck
+            sweetCenterY = Mathf.Clamp(sweetCenterY, bottomBoundary, topBoundary);
         }
         
         // 2) Handle twitching if enabled
@@ -197,7 +252,11 @@ public class ArmWrestleController : MonoBehaviour
             // Perform a twitch
             float twitchDir = Random.value > 0.5f ? 1 : -1;
             sweetCenterY += twitchDir * opponent.twitchAmount;
-            sweetCenterY = Mathf.Clamp(sweetCenterY, minY + (opponent.sweetSpotSize / 2), maxY - (opponent.sweetSpotSize / 2));
+            
+            // Make sure we don't twitch out of bounds (using sweet spot boundaries)
+            float topTwitchBoundary = sweetSpotMaxY - (opponent.sweetSpotSize / 2) - sweetSpotPadding;
+            float bottomTwitchBoundary = sweetSpotMinY + (opponent.sweetSpotSize / 2) + sweetSpotPadding;
+            sweetCenterY = Mathf.Clamp(sweetCenterY, bottomTwitchBoundary, topTwitchBoundary);
             
             // Play twitch sound
             GameManager.Instance?.PlaySound(twitchSound);
@@ -218,8 +277,8 @@ public class ArmWrestleController : MonoBehaviour
             playerY -= opponent.fallSpeed * Time.deltaTime;
         }
         
-        // Clamp player position
-        playerY = Mathf.Clamp(playerY, minY, maxY);
+        // Clamp player position to player boundaries
+        playerY = Mathf.Clamp(playerY, playerMinY + playerPadding, playerMaxY - playerPadding);
         
         // 4) Calculate overlap and adjust stamina
         float playerSize = playerBar.rect.height / meterHeight;
@@ -511,8 +570,17 @@ public class ArmWrestleController : MonoBehaviour
             GameManager.Instance?.PlaySound(winSound);
         }
         
-        // Show round complete transition
-        StartCoroutine(ShowRoundCompleteAnimation(true));
+        // Check if this is the last opponent
+        if (currentOpponentIndex >= opponents.Length - 1)
+        {
+            // Skip round complete animation for the last opponent
+            AdvanceToNextRound();
+        }
+        else
+        {
+            // Show round complete transition for non-final opponents
+            StartCoroutine(ShowRoundCompleteAnimation(true));
+        }
     }
     
     private void LoseRound()
@@ -550,7 +618,16 @@ public class ArmWrestleController : MonoBehaviour
             GameManager.Instance?.PlaySound(loseSound);
         }
         
-        // Restart the scene
+        // Restart the scene after delay
+        StartCoroutine(GameOverDelayedRestart());
+    }
+    
+    private IEnumerator GameOverDelayedRestart()
+    {
+        // Wait for the delay first
+        yield return new WaitForSeconds(gameOverDelay);
+        
+        // Then fade out and restart
         if (uiManager != null)
         {
             uiManager.FadeToBlack(1.0f, () => {
